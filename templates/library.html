@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+
+{% block title %}Thư viện của tôi - EBook Reader{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Library Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white">
+                <div class="card-body">
+                    <h3 class="card-title mb-3">
+                        <i class="fas fa-bookmark me-2"></i>Thư viện của tôi
+                    </h3>
+                    <p class="card-text">
+                        Quản lý và theo dõi tiến độ đọc các cuốn sách yêu thích của bạn.
+                    </p>
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="stat">
+                                <h4>{{ books|length }}</h4>
+                                <small>Tổng số sách</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat">
+                                <h4>{{ books|selectattr('reading_status', 'equalto', 'reading')|list|length }}</h4>
+                                <small>Đang đọc</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat">
+                                <h4>{{ books|selectattr('reading_status', 'equalto', 'completed')|list|length }}</h4>
+                                <small>Đã hoàn thành</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat">
+                                <h4>{{ books|selectattr('is_favorite', 'equalto', 1)|list|length }}</h4>
+                                <small>Yêu thích</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary active" onclick="filterBooks('all')">
+                    <i class="fas fa-list me-1"></i>Tất cả
+                </button>
+                <button type="button" class="btn btn-outline-primary" onclick="filterBooks('reading')">
+                    <i class="fas fa-book-open me-1"></i>Đang đọc
+                </button>
+                <button type="button" class="btn btn-outline-primary" onclick="filterBooks('completed')">
+                    <i class="fas fa-check-circle me-1"></i>Đã hoàn thành
+                </button>
+                <button type="button" class="btn btn-outline-primary" onclick="filterBooks('favorite')">
+                    <i class="fas fa-heart me-1"></i>Yêu thích
+                </button>
+            </div>
+            <div class="float-end">
+                <a href="{{ url_for('upload_book') }}" class="btn btn-success">
+                    <i class="fas fa-plus me-2"></i>Thêm sách mới
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Books Grid -->
+    <div class="row" id="booksGrid">
+        {% if books %}
+            {% for book in books %}
+            <div class="col-md-6 col-lg-4 mb-4 book-item" 
+                 data-status="{{ book.reading_status }}" 
+                 data-favorite="{{ '1' if book.is_favorite else '0' }}">
+                <div class="card h-100 book-card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-4">
+                                {% if book.cover_image_url %}
+                                    <img src="{{ book.cover_image_url }}" 
+                                         class="img-fluid book-cover" alt="{{ book.title }}">
+                                {% else %}
+                                    <div class="book-cover-placeholder bg-secondary d-flex align-items-center justify-content-center">
+                                        <i class="fas fa-book fa-2x text-white"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-8">
+                                <h6 class="card-title">{{ book.title }}</h6>
+                                <p class="card-text text-muted small mb-2">
+                                    <i class="fas fa-user me-1"></i>{{ book.author_name or 'Không rõ tác giả' }}
+                                </p>
+                                
+                                <!-- Reading Progress -->
+                                {% if book.last_read_position and book.last_read_position > 0 %}
+                                    {% set progress_percent = (book.last_read_position / 1000 * 100)|round(1) %}
+                                    <div class="progress mb-2" style="height: 6px;">
+                                        <div class="progress-bar" role="progressbar" 
+                                             style="width: {{ progress_percent }}%"
+                                             aria-valuenow="{{ book.last_read_position }}" 
+                                             aria-valuemin="0" aria-valuemax="1000">
+                                        </div>
+                                    </div>
+                                    <small class="text-muted">
+                                        Tiến độ: {{ progress_percent }}%
+                                    </small>
+                                {% endif %}
+                                
+                                <!-- Status Badges -->
+                                <div class="mt-2">
+                                    {% if book.reading_status == 'reading' %}
+                                        <span class="badge bg-primary">Đang đọc</span>
+                                    {% elif book.reading_status == 'completed' %}
+                                        <span class="badge bg-success">Đã hoàn thành</span>
+                                    {% elif book.reading_status == 'not_started' %}
+                                        <span class="badge bg-secondary">Chưa đọc</span>
+                                    {% endif %}
+                                    
+                                    {% if book.is_favorite %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-heart"></i> Yêu thích
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer bg-transparent">
+                        <div class="btn-group w-100" role="group">
+                            <a href="{{ url_for('book_detail', book_id=book.book_id) }}" 
+                               class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-info-circle me-1"></i>Chi tiết
+                            </a>
+                            <a href="{{ url_for('read_book', book_id=book.book_id) }}" 
+                               class="btn btn-primary btn-sm">
+                                <i class="fas fa-book-open me-1"></i>
+                                {% if book.reading_status == 'reading' %}Tiếp tục{% else %}Đọc{% endif %}
+                            </a>
+                        </div>
+                        
+                        <div class="mt-2">
+                            <div class="btn-group w-100" role="group">
+                                <a href="{{ url_for('toggle_favorite', book_id=book.book_id) }}" 
+                                   class="btn btn-sm {{ 'btn-danger' if book.is_favorite else 'btn-outline-secondary' }}">
+                                    <i class="fas fa-heart"></i>
+                                </a>
+                                <button class="btn btn-outline-secondary btn-sm" 
+                                        onclick="removeFromLibrary(this)"
+                                        data-book-id="{{ book.book_id }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Thư viện của bạn đang trống</h5>
+                    <p class="text-muted">Hãy thêm sách để bắt đầu hành trình đọc của bạn!</p>
+                    <a href="{{ url_for('search') }}" class="btn btn-primary me-2">
+                        <i class="fas fa-search me-2"></i>Tìm sách
+                    </a>
+                    <a href="{{ url_for('upload_book') }}" class="btn btn-success">
+                        <i class="fas fa-upload me-2"></i>Upload sách
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.book-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.book-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.book-cover {
+    height: 120px;
+    object-fit: cover;
+    border-radius: 5px;
+}
+
+.book-cover-placeholder {
+    height: 120px;
+    border-radius: 5px;
+}
+
+.stat h4 {
+    margin-bottom: 0;
+    font-weight: bold;
+}
+
+.stat small {
+    opacity: 0.9;
+}
+
+.progress {
+    border-radius: 3px;
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+}
+</style>
+
+<script>
+function filterBooks(filter) {
+    const bookItems = document.querySelectorAll('.book-item');
+    const buttons = document.querySelectorAll('.btn-group button');
+    
+    // Update active button
+    buttons.forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    bookItems.forEach(item => {
+        let show = false;
+        
+        switch(filter) {
+            case 'all':
+                show = true;
+                break;
+            case 'reading':
+                show = item.dataset.status === 'reading';
+                break;
+            case 'completed':
+                show = item.dataset.status === 'completed';
+                break;
+            case 'favorite':
+                show = item.dataset.favorite === '1';
+                break;
+        }
+        
+        if (show) {
+            item.style.display = 'block';
+            item.style.animation = 'fadeIn 0.3s ease-in';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+
+function removeFromLibrary(buttonElement) {
+    const bookId = buttonElement.dataset.bookId;
+    if (confirm('Bạn có chắc muốn xóa sách này khỏi thư viện?')) {
+        // Implementation for removing book from library
+        fetch(`/remove_from_library/${bookId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Có lỗi xảy ra khi xóa sách!');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Có lỗi xảy ra khi xóa sách!');
+        });
+    }
+}
+
+// Animation CSS
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

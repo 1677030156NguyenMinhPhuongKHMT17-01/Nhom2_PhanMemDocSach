@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}Trang chủ - EBook Reader{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Hero Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center py-5">
+                    <h1 class="card-title display-4 mb-3">
+                        <i class="fas fa-book-open me-3"></i>Chào mừng đến với EBook Reader
+                    </h1>
+                    <p class="lead mb-4">Khám phá thế giới tri thức với hàng ngàn cuốn sách điện tử</p>
+                    <a href="{{ url_for('search') }}" class="btn btn-light btn-lg">
+                        <i class="fas fa-search me-2"></i>Khám phá ngay
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reading Progress Section -->
+    {% if reading_books %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <h3 class="mb-3">
+                <i class="fas fa-bookmark text-primary me-2"></i>Đang đọc
+            </h3>
+            <div class="row">
+                {% for book in reading_books %}
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card h-100">
+                        <div class="row g-0">
+                            <div class="col-4">
+                                {% if book.cover_image_url %}
+                                    <img src="{{ book.cover_image_url }}" class="card-img h-100" alt="{{ book.title }}">
+                                {% else %}
+                                    <div class="bg-secondary d-flex align-items-center justify-content-center h-100">
+                                        <i class="fas fa-book fa-2x text-white"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-8">
+                                <div class="card-body p-3">
+                                    <h6 class="card-title">{{ book.title }}</h6>
+                                    <p class="card-text text-muted small">{{ book.author_name }}</p>
+                                    {% set progress_percentage = (book.last_read_position / book.page_count * 100) if book.page_count else 0 %}
+                                    <div class="reading-progress mb-2">
+                                        <div class="reading-progress-bar" style="width: {{ progress_percentage }}%"></div>
+                                    </div>
+                                    <small class="text-muted">{{ "%.0f"|format(progress_percentage) }}% hoàn thành</small>
+                                    <div class="mt-2">
+                                        <a href="{{ url_for('read_book', book_id=book.book_id) }}" class="btn btn-primary btn-sm">
+                                            <i class="fas fa-play me-1"></i>Tiếp tục đọc
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Books Section -->
+    <div class="row">
+        <div class="col-12">
+            <h3 class="mb-3">
+                <i class="fas fa-clock text-primary me-2"></i>Sách mới nhất
+            </h3>
+            <div class="row">
+                {% for book in recent_books %}
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="card h-100">
+                        {% if book.cover_image_url %}
+                            <img src="{{ book.cover_image_url }}" class="card-img-top book-cover" alt="{{ book.title }}">
+                        {% else %}
+                            <div class="bg-secondary d-flex align-items-center justify-content-center book-cover">
+                                <i class="fas fa-book fa-3x text-white"></i>
+                            </div>
+                        {% endif %}
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">{{ book.title }}</h5>
+                            <p class="card-text text-muted">{{ book.author_name }}</p>
+                            {% if book.description %}
+                                <p class="card-text small">{{ book.description[:100] }}{% if book.description|length > 100 %}...{% endif %}</p>
+                            {% endif %}
+                            <div class="mt-auto">
+                                <a href="{{ url_for('book_detail', book_id=book.book_id) }}" class="btn btn-primary">
+                                    <i class="fas fa-eye me-1"></i>Xem chi tiết
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="row mt-5">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-book fa-3x text-primary mb-3"></i>
+                    <h5>Thư viện phong phú</h5>
+                    <p class="text-muted">Hàng ngàn cuốn sách thuộc mọi thể loại</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-mobile-alt fa-3x text-primary mb-3"></i>
+                    <h5>Đọc mọi lúc mọi nơi</h5>
+                    <p class="text-muted">Trải nghiệm đọc tối ưu trên mọi thiết bị</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-bookmark fa-3x text-primary mb-3"></i>
+                    <h5>Tính năng thông minh</h5>
+                    <p class="text-muted">Đánh dấu, ghi chú và theo dõi tiến độ đọc</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

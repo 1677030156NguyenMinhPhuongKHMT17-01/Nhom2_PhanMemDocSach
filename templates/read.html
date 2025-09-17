@@ -1,0 +1,447 @@
+{% extends "base.html" %}
+
+{% block title %}Đọc: {{ book.title }} - EBook Reader{% endblock %}
+
+{% block extra_css %}
+<style>
+    .reading-container {
+        background-color: #fff;
+        padding: 2rem;
+        margin: 1rem 0;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        max-width: 800px;
+        margin: 1rem auto;
+        line-height: 1.8;
+        font-size: 18px;
+        min-height: 500px;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+
+    .reading-controls {
+        position: sticky;
+        top: 70px;
+        background-color: #fff;
+        border-bottom: 1px solid #dee2e6;
+        padding: 1rem 0;
+        z-index: 1000;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .font-size-controls button,
+    .theme-controls .btn {
+        margin: 0 0.25rem;
+        min-width: 40px;
+    }
+
+    .progress-bar-container {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background-color: #f8f9fa;
+        z-index: 1000;
+    }
+
+    .reading-progress-bar {
+        height: 100%;
+        background-color: #007bff;
+        transition: width 0.3s ease;
+    }
+
+    .search-box {
+        max-width: 300px;
+    }
+
+    .search-results {
+        position: absolute;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        max-height: 300px;
+        overflow-y: auto;
+        width: 100%;
+        z-index: 1001;
+        display: none;
+    }
+
+    .search-result-item {
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+        cursor: pointer;
+    }
+
+    .search-result-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    /* Theme variations */
+    .theme-light {
+        background-color: #fff;
+        color: #333;
+    }
+
+    .theme-dark {
+        background-color: #2d3748;
+        color: #e2e8f0;
+    }
+
+    .theme-sepia {
+        background-color: #f4f1e8;
+        color: #5d4e37;
+    }
+
+    .pagination-controls {
+        text-align: center;
+        margin: 2rem 0;
+    }
+
+    .page-info {
+        font-size: 14px;
+        color: #666;
+        margin: 1rem 0;
+    }
+
+    .highlight {
+        background-color: yellow;
+        padding: 2px;
+    }
+
+    .note-marker {
+        background-color: #ffeaa7;
+        cursor: pointer;
+        border-bottom: 2px dotted #fdcb6e;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Reading Controls -->
+<div class="reading-controls">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-2">
+                <button class="btn btn-outline-secondary btn-sm" onclick="goBack()">
+                    <i class="fas fa-arrow-left"></i> Quay lại
+                </button>
+            </div>
+            
+            <div class="col-md-2">
+                <div class="font-size-controls">
+                    <button class="btn btn-outline-secondary btn-sm" onclick="changeFontSize(-2)">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <span class="mx-2">Font</span>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="changeFontSize(2)">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="theme-controls">
+                    <button class="btn btn-outline-secondary btn-sm" onclick="changeTheme('light')">
+                        <i class="fas fa-sun"></i>
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="changeTheme('sepia')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="changeTheme('dark')">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="search-box position-relative">
+                    <input type="text" class="form-control form-control-sm" 
+                           id="searchInput" placeholder="Tìm kiếm trong sách..." 
+                           onkeyup="searchInBook(event)">
+                    <div id="searchResults" class="search-results"></div>
+                </div>
+            </div>
+            
+            <div class="col-md-2">
+                <button class="btn btn-primary btn-sm" onclick="toggleBookmark()">
+                    <i class="fas fa-bookmark"></i> Đánh dấu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reading Content -->
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h3 class="mb-3">{{ book.title }}</h3>
+            <p class="text-muted mb-4">Tác giả: {{ book.author_name }}</p>
+            
+            <div id="readingContainer" 
+                 class="reading-container theme-light"
+                 data-book-id="{{ book.book_id or 0 }}"
+                 data-last-position="{{ last_position or 0 }}">
+                {% if book_content %}
+                    {{ book_content }}
+                {% else %}
+                    <p class="text-center text-muted">Nội dung sách không có sẵn.</p>
+                {% endif %}
+            </div>
+            
+            <!-- Pagination Controls -->
+            <div class="pagination-controls">
+                <button class="btn btn-outline-secondary" onclick="previousPage()" id="prevBtn">
+                    <i class="fas fa-chevron-left"></i> Trang trước
+                </button>
+                <span class="page-info mx-3" id="pageInfo">Trang 1 / 1</span>
+                <button class="btn btn-outline-secondary" onclick="nextPage()" id="nextBtn">
+                    Trang sau <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            
+            <!-- Note Taking -->
+            <div class="mt-4">
+                <h5>Thêm ghi chú</h5>
+                <form method="POST" action="{{ url_for('add_note') }}">
+                    <input type="hidden" name="book_id" value="{{ book.book_id }}">
+                    <div class="mb-3">
+                        <textarea class="form-control" name="content" rows="3" 
+                                  placeholder="Nhập ghi chú của bạn..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <input type="text" class="form-control" name="location" 
+                               placeholder="Vị trí trong sách (tùy chọn)">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Thêm ghi chú</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Progress Bar -->
+<div class="progress-bar-container">
+    <div class="reading-progress-bar" id="progressBar" style="width: 0%"></div>
+</div>
+
+<script>
+let currentPage = 1;
+let totalPages = 1;
+let currentFontSize = 18;
+let currentTheme = 'light';
+let bookContent = '';
+let allWords = [];
+let wordsPerPage = 500;
+let bookId = 0;
+let lastPosition = 0;
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    // Get data from HTML data attributes
+    const container = document.getElementById('readingContainer');
+    bookId = parseInt(container.dataset.bookId) || 0;
+    lastPosition = parseInt(container.dataset.lastPosition) || 0;
+    
+    // Load full content and split into pages
+    loadBookContent();
+    
+    // Load saved settings
+    loadSettings();
+    
+    // Auto-save progress every 30 seconds
+    setInterval(saveProgress, 30000);
+    
+    // Save progress when leaving page
+    window.addEventListener('beforeunload', saveProgress);
+});
+
+function loadBookContent() {
+    // Split content into words for pagination
+    const content = document.getElementById('readingContainer').textContent;
+    allWords = content.split(/\s+/).filter(word => word.length > 0);
+    totalPages = Math.ceil(allWords.length / wordsPerPage);
+    
+    // Start from saved position
+    currentPage = Math.max(1, Math.floor(lastPosition / wordsPerPage) + 1);
+    
+    displayPage(currentPage);
+    updatePageInfo();
+}
+
+function displayPage(page) {
+    const startIndex = (page - 1) * wordsPerPage;
+    const endIndex = Math.min(startIndex + wordsPerPage, allWords.length);
+    const pageWords = allWords.slice(startIndex, endIndex);
+    
+    document.getElementById('readingContainer').innerHTML = pageWords.join(' ');
+    updateProgress();
+    updatePageInfo();
+    
+    // Enable/disable navigation buttons
+    document.getElementById('prevBtn').disabled = (page <= 1);
+    document.getElementById('nextBtn').disabled = (page >= totalPages);
+}
+
+function previousPage() {
+    if (currentPage > 1) {
+        currentPage--;
+        displayPage(currentPage);
+        saveProgress();
+    }
+}
+
+function nextPage() {
+    if (currentPage < totalPages) {
+        currentPage++;
+        displayPage(currentPage);
+        saveProgress();
+    }
+}
+
+function updatePageInfo() {
+    document.getElementById('pageInfo').textContent = `Trang ${currentPage} / ${totalPages}`;
+}
+
+function updateProgress() {
+    const progress = (currentPage / totalPages) * 100;
+    document.getElementById('progressBar').style.width = progress + '%';
+}
+
+function changeFontSize(delta) {
+    currentFontSize += delta;
+    currentFontSize = Math.max(12, Math.min(32, currentFontSize));
+    document.getElementById('readingContainer').style.fontSize = currentFontSize + 'px';
+    saveSettings();
+}
+
+function changeTheme(theme) {
+    const container = document.getElementById('readingContainer');
+    container.className = container.className.replace(/theme-\w+/, 'theme-' + theme);
+    currentTheme = theme;
+    saveSettings();
+}
+
+function searchInBook(event) {
+    const query = event.target.value.trim();
+    if (query.length < 3) {
+        document.getElementById('searchResults').style.display = 'none';
+        return;
+    }
+    
+    if (event.key === 'Enter') {
+        performSearch(query);
+    }
+}
+
+function performSearch(query) {
+    fetch(`/search_in_book/${bookId}?q=${encodeURIComponent(query)}`)
+        .then(response => response.json())
+        .then(data => {
+            displaySearchResults(data.results);
+        })
+        .catch(error => {
+            console.error('Search error:', error);
+        });
+}
+
+function displaySearchResults(results) {
+    const resultsDiv = document.getElementById('searchResults');
+    
+    if (results.length === 0) {
+        resultsDiv.innerHTML = '<div class="p-2 text-muted">Không tìm thấy kết quả</div>';
+    } else {
+        resultsDiv.innerHTML = results.map(result => 
+            `<div class="search-result-item" onclick="highlightText('${result.content}')">
+                <strong>Dòng ${result.line_number}:</strong> ${result.content.substring(0, 100)}...
+            </div>`
+        ).join('');
+    }
+    
+    resultsDiv.style.display = 'block';
+}
+
+function highlightText(text) {
+    const container = document.getElementById('readingContainer');
+    const content = container.innerHTML;
+    const highlighted = content.replace(new RegExp(text, 'gi'), `<span class="highlight">${text}</span>`);
+    container.innerHTML = highlighted;
+    
+    document.getElementById('searchResults').style.display = 'none';
+    document.getElementById('searchInput').value = '';
+}
+
+function toggleBookmark() {
+    // Add bookmark functionality
+    const position = (currentPage - 1) * wordsPerPage;
+    fetch('/save_progress', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            book_id: bookId,
+            position: position
+        })
+    });
+    
+    alert('Đã lưu vị trí đọc!');
+}
+
+function saveProgress() {
+    const position = (currentPage - 1) * wordsPerPage;
+    fetch('/save_progress', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            book_id: bookId,
+            position: position
+        })
+    });
+}
+
+function saveSettings() {
+    localStorage.setItem('reading_font_size', currentFontSize);
+    localStorage.setItem('reading_theme', currentTheme);
+}
+
+function loadSettings() {
+    const savedFontSize = localStorage.getItem('reading_font_size');
+    const savedTheme = localStorage.getItem('reading_theme');
+    
+    if (savedFontSize) {
+        currentFontSize = parseInt(savedFontSize);
+        document.getElementById('readingContainer').style.fontSize = currentFontSize + 'px';
+    }
+    
+    if (savedTheme) {
+        changeTheme(savedTheme);
+    }
+}
+
+function goBack() {
+    window.history.back();
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'ArrowLeft') {
+        previousPage();
+    } else if (event.key === 'ArrowRight') {
+        nextPage();
+    } else if (event.key === 'Escape') {
+        document.getElementById('searchResults').style.display = 'none';
+    }
+});
+
+// Hide search results when clicking outside
+document.addEventListener('click', function(event) {
+    if (!event.target.closest('.search-box')) {
+        document.getElementById('searchResults').style.display = 'none';
+    }
+});
+</script>
+{% endblock %}

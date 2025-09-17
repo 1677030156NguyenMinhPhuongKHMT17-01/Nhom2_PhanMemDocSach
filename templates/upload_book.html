@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Sách - EBook Reader{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-upload"></i> Thêm Sách Mới</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="title" class="form-label">Tên sách <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="title" name="title" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="author_name" class="form-label">Tác giả <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="author_name" name="author_name" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="publisher_name" class="form-label">Nhà xuất bản</label>
+                                    <input type="text" class="form-control" id="publisher_name" name="publisher_name">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="publication_year" class="form-label">Năm xuất bản</label>
+                                    <input type="number" class="form-control" id="publication_year" name="publication_year" min="1900" max="2030">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Mô tả</label>
+                            <textarea class="form-control" id="description" name="description" rows="4" placeholder="Mô tả ngắn về nội dung sách..."></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="genres" class="form-label">Thể loại</label>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="genres" value="Văn học" id="genre1">
+                                        <label class="form-check-label" for="genre1">Văn học</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="genres" value="Khoa học" id="genre2">
+                                        <label class="form-check-label" for="genre2">Khoa học</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="genres" value="Lịch sử" id="genre3">
+                                        <label class="form-check-label" for="genre3">Lịch sử</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="genres" value="Trinh thám" id="genre4">
+                                        <label class="form-check-label" for="genre4">Trinh thám</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="genres" value="Tiểu thuyết" id="genre5">
+                                        <label class="form-check-label" for="genre5">Tiểu thuyết</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="genres" value="Kinh doanh" id="genre6">
+                                        <label class="form-check-label" for="genre6">Kinh doanh</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="genres" value="Tâm lý" id="genre7">
+                                        <label class="form-check-label" for="genre7">Tâm lý</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="genres" value="Giáo dục" id="genre8">
+                                        <label class="form-check-label" for="genre8">Giáo dục</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="book_file" class="form-label">File sách <span class="text-danger">*</span></label>
+                            <input type="file" class="form-control" id="book_file" name="book_file" 
+                                   accept=".pdf,.epub,.txt" required onchange="validateFile(this)">
+                            <div class="form-text">
+                                Chỉ hỗ trợ file PDF, EPUB và TXT. Dung lượng tối đa 16MB.
+                            </div>
+                            <div id="file-info" class="mt-2"></div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('index') }}" class="btn btn-secondary me-md-2">
+                                <i class="fas fa-times"></i> Hủy
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-upload"></i> Upload Sách
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Upload Instructions -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle"></i> Hướng dẫn Upload</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6><i class="fas fa-file-pdf text-danger"></i> File PDF</h6>
+                            <p class="small">Định dạng phổ biến nhất, giữ nguyên layout và font chữ. Phù hợp với sách có hình ảnh, biểu đồ.</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6><i class="fas fa-book text-success"></i> File EPUB</h6>
+                            <p class="small">Định dạng sách điện tử chuyên dụng, có thể thay đổi kích thước chữ linh hoạt.</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6><i class="fas fa-file-alt text-primary"></i> File TXT</h6>
+                            <p class="small">Văn bản thuần, nhẹ và tải nhanh. Phù hợp với tiểu thuyết, truyện ngắn.</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-12">
+                            <h6><i class="fas fa-lightbulb text-warning"></i> Lưu ý:</h6>
+                            <ul class="small">
+                                <li>Đảm bảo file không có bản quyền hoặc bạn có quyền chia sẻ</li>
+                                <li>Điền đầy đủ thông tin để người khác dễ tìm kiếm</li>
+                                <li>Chọn thể loại phù hợp để phân loại sách</li>
+                                <li>File sẽ được lưu an toàn trên hệ thống</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function validateFile(input) {
+    const file = input.files[0];
+    const fileInfo = document.getElementById('file-info');
+    
+    if (file) {
+        const fileSize = (file.size / 1024 / 1024).toFixed(2); // MB
+        const fileName = file.name;
+        const fileExtension = fileName.split('.').pop().toLowerCase();
+        
+        let alertClass = 'alert-info';
+        let message = `<strong>File đã chọn:</strong> ${fileName}<br>`;
+        message += `<strong>Dung lượng:</strong> ${fileSize} MB<br>`;
+        
+        // Validate file size
+        if (file.size > 16 * 1024 * 1024) { // 16MB
+            alertClass = 'alert-danger';
+            message += `<strong>Lỗi:</strong> File quá lớn! Vui lòng chọn file nhỏ hơn 16MB.`;
+            input.value = '';
+        } else if (!['pdf', 'epub', 'txt'].includes(fileExtension)) {
+            alertClass = 'alert-danger';
+            message += `<strong>Lỗi:</strong> Định dạng file không được hỗ trợ!`;
+            input.value = '';
+        } else {
+            message += `<strong>Trạng thái:</strong> Sẵn sàng upload`;
+            
+            // Add file type specific info
+            if (fileExtension === 'pdf') {
+                message += '<br><small class="text-muted">PDF - Giữ nguyên định dạng gốc</small>';
+            } else if (fileExtension === 'epub') {
+                message += '<br><small class="text-muted">EPUB - Hỗ trợ thay đổi kích thước chữ</small>';
+            } else if (fileExtension === 'txt') {
+                message += '<br><small class="text-muted">TXT - Văn bản thuần, tối ưu hiệu suất</small>';
+            }
+        }
+        
+        fileInfo.innerHTML = `<div class="alert ${alertClass} mb-0">${message}</div>`;
+    } else {
+        fileInfo.innerHTML = '';
+    }
+}
+
+// Auto-fill form based on filename
+document.getElementById('book_file').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const fileName = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
+        const titleField = document.getElementById('title');
+        
+        // Only auto-fill if title is empty
+        if (!titleField.value) {
+            // Clean up filename for title
+            const cleanTitle = fileName
+                .replace(/[-_]/g, ' ')
+                .replace(/\b\w/g, l => l.toUpperCase());
+            titleField.value = cleanTitle;
+        }
+    }
+});
+
+// Form validation before submit
+document.querySelector('form').addEventListener('submit', function(e) {
+    const fileInput = document.getElementById('book_file');
+    const titleInput = document.getElementById('title');
+    const authorInput = document.getElementById('author_name');
+    
+    if (!fileInput.files[0]) {
+        e.preventDefault();
+        alert('Vui lòng chọn file sách!');
+        return;
+    }
+    
+    if (!titleInput.value.trim()) {
+        e.preventDefault();
+        alert('Vui lòng nhập tên sách!');
+        titleInput.focus();
+        return;
+    }
+    
+    if (!authorInput.value.trim()) {
+        e.preventDefault();
+        alert('Vui lòng nhập tên tác giả!');
+        authorInput.focus();
+        return;
+    }
+    
+    // Show loading state
+    const submitBtn = document.querySelector('button[type="submit"]');
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang upload...';
+    submitBtn.disabled = true;
+});
+</script>
+{% endblock %}

@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}{{ book.title }} - EBook Reader{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Book Cover and Actions -->
+        <div class="col-md-4">
+            <div class="card">
+                {% if book.cover_image_url %}
+                    <img src="{{ book.cover_image_url }}" class="card-img-top" alt="{{ book.title }}" style="height: 400px; object-fit: cover;">
+                {% else %}
+                    <div class="bg-secondary d-flex align-items-center justify-content-center" style="height: 400px;">
+                        <i class="fas fa-book fa-5x text-white"></i>
+                    </div>
+                {% endif %}
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('read_book', book_id=book.book_id) }}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-book-open me-2"></i>Đọc sách
+                        </a>
+                        
+                        {% if not user_book %}
+                            <a href="{{ url_for('add_to_library', book_id=book.book_id) }}" class="btn btn-outline-primary">
+                                <i class="fas fa-plus me-2"></i>Thêm vào thư viện
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('toggle_favorite', book_id=book.book_id) }}" class="btn btn-outline-{{ 'danger' if user_book.is_favorite else 'warning' }}">
+                                <i class="fas fa-heart me-2"></i>{{ 'Bỏ yêu thích' if user_book.is_favorite else 'Yêu thích' }}
+                            </a>
+                        {% endif %}
+                        
+                        <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#shareModal">
+                            <i class="fas fa-share me-2"></i>Chia sẻ
+                        </button>
+                    </div>
+                    
+                    {% if user_book and user_book.reading_status == 'reading' %}
+                        <div class="mt-3">
+                            <small class="text-muted">Tiến độ đọc:</small>
+                            {% set reading_progress = (user_book.last_read_position / book.page_count * 100) if book.page_count else 0 %}
+                            <div class="reading-progress">
+                                <div class="reading-progress-bar" style="width: {{ reading_progress }}%"></div>
+                            </div>
+                            <small class="text-muted">{{ "%.0f"|format(reading_progress) }}% hoàn thành</small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Book Details -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h1 class="card-title">{{ book.title }}</h1>
+                    
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>Tác giả:</strong></div>
+                        <div class="col-sm-9">{{ book.author_name or 'Không xác định' }}</div>
+                    </div>
+                    
+                    {% if book.publisher_name %}
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>Nhà xuất bản:</strong></div>
+                        <div class="col-sm-9">{{ book.publisher_name }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if book.publication_year %}
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>Năm xuất bản:</strong></div>
+                        <div class="col-sm-9">{{ book.publication_year }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if book.page_count %}
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>Số trang:</strong></div>
+                        <div class="col-sm-9">{{ book.page_count }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if genres %}
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>Thể loại:</strong></div>
+                        <div class="col-sm-9">
+                            {% for genre in genres %}
+                                <span class="badge bg-secondary me-1">{{ genre.genre_name }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if book.description %}
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>Mô tả:</strong></div>
+                        <div class="col-sm-9">{{ book.description }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Notes Section -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-sticky-note me-2"></i>Ghi chú của tôi
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Add Note Form -->
+                    <form method="POST" action="{{ url_for('add_note') }}" class="mb-4">
+                        <input type="hidden" name="book_id" value="{{ book.book_id }}">
+                        <div class="mb-3">
+                            <label for="content" class="form-label">Thêm ghi chú mới:</label>
+                            <textarea class="form-control" id="content" name="content" rows="3" placeholder="Nhập ghi chú của bạn..."></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <input type="text" class="form-control" name="location" placeholder="Vị trí trong sách (tùy chọn)">
+                            </div>
+                            <div class="col-md-6">
+                                <input type="text" class="form-control" name="highlighted_text" placeholder="Văn bản được đánh dấu (tùy chọn)">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-2">
+                            <i class="fas fa-plus me-1"></i>Thêm ghi chú
+                        </button>
+                    </form>
+
+                    <!-- Notes List -->
+                    {% if notes %}
+                        {% for note in notes %}
+                        <div class="border-start border-primary border-3 ps-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <p class="mb-1">{{ note.content }}</p>
+                                    {% if note.highlighted_text %}
+                                        <blockquote class="blockquote-footer">
+                                            <small>"{{ note.highlighted_text }}"</small>
+                                        </blockquote>
+                                    {% endif %}
+                                    {% if note.location_in_book %}
+                                        <small class="text-muted">
+                                            <i class="fas fa-map-marker-alt me-1"></i>{{ note.location_in_book }}
+                                        </small>
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted ms-2">{{ note.created_at }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center">Chưa có ghi chú nào. Hãy thêm ghi chú đầu tiên!</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Share Modal -->
+<div class="modal fade" id="shareModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chia sẻ sách</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Chia sẻ "{{ book.title }}" với bạn bè:</p>
+                <div class="input-group">
+                    <input type="text" class="form-control" value="{{ request.url }}" readonly>
+                    <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard()">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyToClipboard() {
+    const input = document.querySelector('#shareModal input');
+    input.select();
+    document.execCommand('copy');
+    alert('Đã sao chép link!');
+}
+</script>
+{% endblock %}
