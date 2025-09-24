@@ -64,7 +64,7 @@
                 </button>
             </div>
             <div class="float-end">
-                <a href="{{ url_for('upload_book') }}" class="btn btn-success">
+                <a href="{{ url_for('main.upload_book') }}" class="btn btn-success">
                     <i class="fas fa-plus me-2"></i>Thêm sách mới
                 </a>
             </div>
@@ -134,11 +134,11 @@
                     
                     <div class="card-footer bg-transparent">
                         <div class="btn-group w-100" role="group">
-                            <a href="{{ url_for('book_detail', book_id=book.book_id) }}" 
+                            <a href="{{ url_for('main.book_detail', book_id=book.book_id) }}" 
                                class="btn btn-outline-primary btn-sm">
                                 <i class="fas fa-info-circle me-1"></i>Chi tiết
                             </a>
-                            <a href="{{ url_for('read_book', book_id=book.book_id) }}" 
+                            <a href="{{ url_for('main.read_book', book_id=book.book_id) }}" 
                                class="btn btn-primary btn-sm">
                                 <i class="fas fa-book-open me-1"></i>
                                 {% if book.reading_status == 'reading' %}Tiếp tục{% else %}Đọc{% endif %}
@@ -147,7 +147,7 @@
                         
                         <div class="mt-2">
                             <div class="btn-group w-100" role="group">
-                                <a href="{{ url_for('toggle_favorite', book_id=book.book_id) }}" 
+                                <a href="{{ url_for('main.toggle_favorite', book_id=book.book_id) }}" 
                                    class="btn btn-sm {{ 'btn-danger' if book.is_favorite else 'btn-outline-secondary' }}">
                                     <i class="fas fa-heart"></i>
                                 </a>
@@ -168,10 +168,10 @@
                     <i class="fas fa-book fa-3x text-muted mb-3"></i>
                     <h5 class="text-muted">Thư viện của bạn đang trống</h5>
                     <p class="text-muted">Hãy thêm sách để bắt đầu hành trình đọc của bạn!</p>
-                    <a href="{{ url_for('search') }}" class="btn btn-primary me-2">
+                    <a href="{{ url_for('main.search') }}" class="btn btn-primary me-2">
                         <i class="fas fa-search me-2"></i>Tìm sách
                     </a>
-                    <a href="{{ url_for('upload_book') }}" class="btn btn-success">
+                    <a href="{{ url_for('main.upload_book') }}" class="btn btn-success">
                         <i class="fas fa-upload me-2"></i>Upload sách
                     </a>
                 </div>

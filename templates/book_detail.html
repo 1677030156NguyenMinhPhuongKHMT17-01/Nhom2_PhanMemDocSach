@@ -17,16 +17,16 @@
                 {% endif %}
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a href="{{ url_for('read_book', book_id=book.book_id) }}" class="btn btn-primary btn-lg">
+                        <a href="{{ url_for('main.read_book', book_id=book.book_id) }}" class="btn btn-primary btn-lg">
                             <i class="fas fa-book-open me-2"></i>Đọc sách
                         </a>
                         
                         {% if not user_book %}
-                            <a href="{{ url_for('add_to_library', book_id=book.book_id) }}" class="btn btn-outline-primary">
+                            <a href="{{ url_for('main.add_to_library', book_id=book.book_id) }}" class="btn btn-outline-primary">
                                 <i class="fas fa-plus me-2"></i>Thêm vào thư viện
                             </a>
                         {% else %}
-                            <a href="{{ url_for('toggle_favorite', book_id=book.book_id) }}" class="btn btn-outline-{{ 'danger' if user_book.is_favorite else 'warning' }}">
+                            <a href="{{ url_for('main.toggle_favorite', book_id=book.book_id) }}" class="btn btn-outline-{{ 'danger' if user_book.is_favorite else 'warning' }}">
                                 <i class="fas fa-heart me-2"></i>{{ 'Bỏ yêu thích' if user_book.is_favorite else 'Yêu thích' }}
                             </a>
                         {% endif %}
@@ -111,7 +111,7 @@
                 </div>
                 <div class="card-body">
                     <!-- Add Note Form -->
-                    <form method="POST" action="{{ url_for('add_note') }}" class="mb-4">
+                    <form method="POST" action="{{ url_for('main.add_note') }}" class="mb-4">
                         <input type="hidden" name="book_id" value="{{ book.book_id }}">
                         <div class="mb-3">
                             <label for="content" class="form-label">Thêm ghi chú mới:</label>
