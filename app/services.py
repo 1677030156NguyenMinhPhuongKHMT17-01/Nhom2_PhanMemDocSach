@@ -50,6 +50,49 @@ class UserService:
         except Exception as e:
             return False, f"Lỗi xác thực: {str(e)}"
 
+    def get_user_info(self, user_id):
+        """Lấy thông tin người dùng"""
+        try:
+            user = self.user_model.get_user_by_id(user_id)
+            if user:
+                return user
+            return None
+        except Exception:
+            return None
+
+    def update_profile(self, user_id, full_name, email):
+        """Cập nhật thông tin cá nhân"""
+        # Validate email
+        if not ValidationHelper.validate_email(email):
+            return False, "Email không hợp lệ"
+            
+        try:
+            # Check if email is taken by another user (skip for now for simplicity or implement check)
+            self.user_model.update_user(user_id, full_name, email)
+            return True, "Cập nhật thông tin thành công"
+        except Exception as e:
+            return False, f"Lỗi cập nhật: {str(e)}"
+
+    def change_password(self, user_id, current_password, new_password):
+        """Đổi mật khẩu"""
+        try:
+            user = self.user_model.get_user_by_id(user_id)
+            if not user:
+                return False, "Người dùng không tồn tại"
+            
+            if not check_password_hash(user['password_hash'], current_password):
+                return False, "Mật khẩu hiện tại không đúng"
+            
+            is_valid, msg = ValidationHelper.validate_password(new_password)
+            if not is_valid:
+                return False, msg
+                
+            new_hash = generate_password_hash(new_password)
+            self.user_model.update_password(user_id, new_hash)
+            return True, "Đổi mật khẩu thành công"
+        except Exception as e:
+            return False, f"Lỗi đổi mật khẩu: {str(e)}"
+
 class BookService:
     """Service xử lý logic liên quan đến sách"""
     

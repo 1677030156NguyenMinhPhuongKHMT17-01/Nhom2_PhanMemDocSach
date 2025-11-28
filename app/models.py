@@ -175,6 +175,50 @@ class UserModel:
         finally:
             conn.close()
 
+    def update_user(self, user_id, full_name, email):
+        """Cập nhật thông tin người dùng"""
+        conn = self.db.get_connection()
+        try:
+            conn.execute(
+                'UPDATE users SET full_name = ?, email = ? WHERE user_id = ?',
+                (full_name, email, user_id)
+            )
+            conn.commit()
+            return True
+        except Exception as e:
+            conn.rollback()
+            raise e
+        finally:
+            conn.close()
+
+    def update_password(self, user_id, password_hash):
+        """Cập nhật mật khẩu"""
+        conn = self.db.get_connection()
+        try:
+            conn.execute(
+                'UPDATE users SET password_hash = ? WHERE user_id = ?',
+                (password_hash, user_id)
+            )
+            conn.commit()
+            return True
+        except Exception as e:
+            conn.rollback()
+            raise e
+        finally:
+            conn.close()
+    
+    def get_user_by_id(self, user_id):
+        """Lấy thông tin user theo ID"""
+        conn = self.db.get_connection()
+        try:
+            user = conn.execute(
+                'SELECT * FROM users WHERE user_id = ?',
+                (user_id,)
+            ).fetchone()
+            return user
+        finally:
+            conn.close()
+
 class BookModel:
     """Model cho thao tác với bảng books và liên quan"""
     

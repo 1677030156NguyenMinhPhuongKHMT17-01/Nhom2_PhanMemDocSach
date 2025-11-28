@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Không tìm thấy trang - EBook Reader{% endblock %}
+
+{% block content %}
+<div class="container text-center py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h1 class="display-1 text-muted">404</h1>
+            <h2 class="mb-4">Không tìm thấy trang</h2>
+            <p class="lead mb-4">Trang bạn đang tìm kiếm không tồn tại hoặc đã bị di chuyển.</p>
+            <a href="{{ url_for('main.index') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-home me-2"></i>Về trang chủ
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

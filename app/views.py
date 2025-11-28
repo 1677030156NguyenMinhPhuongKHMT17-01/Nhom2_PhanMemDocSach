@@ -82,6 +82,45 @@ def logout():
     flash('Đã đăng xuất thành công!', 'success')
     return redirect(url_for('main.login'))
 
+@main_bp.route('/profile', methods=['GET', 'POST'])
+def profile():
+    """Trang hồ sơ người dùng"""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    user_id = session['user_id']
+    
+    if request.method == 'POST':
+        action = request.form.get('action')
+        
+        if action == 'update_info':
+            full_name = request.form.get('full_name', '').strip()
+            email = request.form.get('email', '').strip()
+            
+            success, message = user_service.update_profile(user_id, full_name, email)
+            if success:
+                session['full_name'] = full_name # Update session
+                flash(message, 'success')
+            else:
+                flash(message, 'error')
+                
+        elif action == 'change_password':
+            current_password = request.form.get('current_password')
+            new_password = request.form.get('new_password')
+            confirm_password = request.form.get('confirm_password')
+            
+            if new_password != confirm_password:
+                flash('Mật khẩu xác nhận không khớp', 'error')
+            else:
+                success, message = user_service.change_password(user_id, current_password, new_password)
+                if success:
+                    flash(message, 'success')
+                else:
+                    flash(message, 'error')
+    
+    user = user_service.get_user_info(user_id)
+    return render_template('profile.html', user=user)
+
 @main_bp.route('/library')
 def library():
     """Thư viện cá nhân"""

@@ -5,11 +5,9 @@
 {% block extra_css %}
 <style>
     .reading-container {
-        background-color: #fff;
         padding: 2rem;
         margin: 1rem 0;
         border-radius: 10px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         max-width: 800px;
         margin: 1rem auto;
         line-height: 1.8;
@@ -17,22 +15,36 @@
         min-height: 500px;
         white-space: pre-wrap;
         word-wrap: break-word;
+        transition: all 0.3s ease;
     }
 
     .reading-controls {
         position: sticky;
         top: 70px;
-        background-color: #fff;
-        border-bottom: 1px solid #dee2e6;
+        background-color: var(--bg-secondary);
+        border-bottom: 1px solid var(--border-color);
         padding: 1rem 0;
         z-index: 1000;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        box-shadow: var(--shadow);
+        transition: background-color 0.3s, border-color 0.3s;
     }
 
     .font-size-controls button,
     .theme-controls .btn {
         margin: 0 0.25rem;
         min-width: 40px;
+        transition: all 0.2s ease;
+    }
+    
+    .theme-controls .btn.active {
+        background-color: var(--bs-primary);
+        color: white;
+        border-color: var(--bs-primary);
+    }
+    
+    [data-bs-theme="dark"] .theme-controls .btn.active {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
     }
 
     .progress-bar-container {
@@ -41,7 +53,7 @@
         left: 0;
         right: 0;
         height: 4px;
-        background-color: #f8f9fa;
+        background-color: var(--bg-primary);
         z-index: 1000;
     }
 
@@ -57,45 +69,72 @@
 
     .search-results {
         position: absolute;
-        background: white;
-        border: 1px solid #ddd;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
         border-radius: 5px;
         max-height: 300px;
         overflow-y: auto;
         width: 100%;
         z-index: 1001;
         display: none;
+        color: var(--text-primary);
     }
 
     .search-result-item {
         padding: 10px;
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid var(--border-color);
         cursor: pointer;
     }
 
     .search-result-item:hover {
-        background-color: #f8f9fa;
+        background-color: var(--bg-primary);
     }
 
-    /* Theme variations */
+    /* Reading Theme variations - Độc lập với dark mode tổng thể */
     .theme-light {
         background-color: #fff;
         color: #333;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
 
     .theme-dark {
-        background-color: #2d3748;
+        background-color: #1e1e1e;
         color: #e2e8f0;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.5);
     }
 
     .theme-sepia {
         background-color: #f4f1e8;
         color: #5d4e37;
+        box-shadow: 0 2px 10px rgba(93,78,55,0.2);
     }
 
     .pagination-controls {
         text-align: center;
         margin: 2rem 0;
+    }
+    
+    /* Dark mode highlight colors */
+    [data-bs-theme="dark"] .highlight {
+        background-color: #ffd93d;
+        color: #000;
+    }
+    
+    [data-bs-theme="dark"] .note-marker {
+        background-color: #ffeaa7;
+        color: #2d3436;
+        border-bottom: 2px dotted #fdcb6e;
+    }
+    
+    /* Ensure buttons are visible in dark mode */
+    [data-bs-theme="dark"] .reading-controls .btn-outline-secondary {
+        color: #adb5bd;
+        border-color: #495057;
+    }
+    
+    [data-bs-theme="dark"] .reading-controls .btn-outline-secondary:hover {
+        background-color: #495057;
+        color: #fff;
     }
 
     .page-info {
@@ -141,14 +180,14 @@
             </div>
             
             <div class="col-md-3">
-                <div class="theme-controls">
-                    <button class="btn btn-outline-secondary btn-sm" onclick="changeTheme('light')">
+                <div class="theme-controls d-flex gap-1">
+                    <button class="btn btn-outline-secondary btn-sm" onclick="changeTheme('light')" title="Sáng">
                         <i class="fas fa-sun"></i>
                     </button>
-                    <button class="btn btn-outline-secondary btn-sm" onclick="changeTheme('sepia')">
-                        <i class="fas fa-eye"></i>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="changeTheme('sepia')" title="Sepia">
+                        <i class="fas fa-book"></i>
                     </button>
-                    <button class="btn btn-outline-secondary btn-sm" onclick="changeTheme('dark')">
+                    <button class="btn btn-outline-secondary btn-sm" onclick="changeTheme('dark')" title="Tối">
                         <i class="fas fa-moon"></i>
                     </button>
                 </div>
@@ -244,6 +283,9 @@ document.addEventListener('DOMContentLoaded', function() {
     bookId = parseInt(container.dataset.bookId) || 0;
     lastPosition = parseInt(container.dataset.lastPosition) || 0;
     
+    // Đồng bộ với dark mode tổng thể trước
+    syncWithGlobalTheme();
+    
     // Load full content and split into pages
     loadBookContent();
     
@@ -321,6 +363,33 @@ function changeTheme(theme) {
     container.className = container.className.replace(/theme-\w+/, 'theme-' + theme);
     currentTheme = theme;
     saveSettings();
+    
+    // Highlight active theme button
+    document.querySelectorAll('.theme-controls .btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelectorAll('.theme-controls .btn').forEach(btn => {
+        if ((theme === 'light' && btn.querySelector('.fa-sun')) ||
+            (theme === 'sepia' && btn.querySelector('.fa-book')) ||
+            (theme === 'dark' && btn.querySelector('.fa-moon'))) {
+            btn.classList.add('active');
+        }
+    });
+}
+
+// Đồng bộ với dark mode tổng thể khi tải trang
+function syncWithGlobalTheme() {
+    const globalTheme = document.documentElement.getAttribute('data-bs-theme');
+    const savedReadingTheme = localStorage.getItem('reading_theme');
+    
+    // Nếu chưa có reading theme riêng, tự động chọn dựa trên global theme
+    if (!savedReadingTheme) {
+        if (globalTheme === 'dark') {
+            changeTheme('dark');
+        } else {
+            changeTheme('light');
+        }
+    }
 }
 
 function searchInBook(event) {

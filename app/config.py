@@ -3,6 +3,10 @@ Cấu hình cho ứng dụng EBook Reader
 """
 import os
 from datetime import timedelta
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 class Config:
     """Cấu hình cơ bản cho ứng dụng"""
@@ -17,7 +21,7 @@ class Config:
     # Cấu hình upload file
     UPLOAD_FOLDER = 'static/uploads'
     COVERS_FOLDER = 'static/covers'
-    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB tối đa cho file upload
+    MAX_CONTENT_LENGTH = 200 * 1024 * 1024  # 200MB tối đa cho file upload
     
     # Các định dạng file được hỗ trợ
     ALLOWED_EXTENSIONS = {'.pdf', '.epub', '.txt'}

@@ -106,7 +106,8 @@
                             <input type="file" class="form-control" id="book_file" name="book_file" 
                                    accept=".pdf,.epub,.txt" required onchange="validateFile(this)">
                             <div class="form-text">
-                                Chỉ hỗ trợ file PDF, EPUB và TXT. Dung lượng tối đa 16MB.
+                                <strong>Định dạng hỗ trợ:</strong> PDF, EPUB, TXT. <strong>Dung lượng tối đa:</strong> 200MB.<br>
+                                <span class="text-warning"><i class="fas fa-exclamation-triangle"></i> <strong>Lưu ý:</strong> File PDF có thể hiển thị không chính xác nếu chứa nhiều hình ảnh hoặc định dạng phức tạp. Nên dùng EPUB hoặc TXT để có trải nghiệm đọc tốt nhất.</span>
                             </div>
                             <div id="file-info" class="mt-2"></div>
                         </div>
@@ -176,9 +177,9 @@ function validateFile(input) {
         message += `<strong>Dung lượng:</strong> ${fileSize} MB<br>`;
         
         // Validate file size
-        if (file.size > 16 * 1024 * 1024) { // 16MB
+        if (file.size > 200 * 1024 * 1024) { // 200MB
             alertClass = 'alert-danger';
-            message += `<strong>Lỗi:</strong> File quá lớn! Vui lòng chọn file nhỏ hơn 16MB.`;
+            message += `<strong>Lỗi:</strong> File quá lớn! Vui lòng chọn file nhỏ hơn 200MB.`;
             input.value = '';
         } else if (!['pdf', 'epub', 'txt'].includes(fileExtension)) {
             alertClass = 'alert-danger';
@@ -189,11 +190,11 @@ function validateFile(input) {
             
             // Add file type specific info
             if (fileExtension === 'pdf') {
-                message += '<br><small class="text-muted">PDF - Giữ nguyên định dạng gốc</small>';
+                message += '<br><small class="text-warning"><i class="fas fa-exclamation-triangle"></i> PDF có thể hiển thị không chính xác. Khuyến nghị: EPUB/TXT</small>';
             } else if (fileExtension === 'epub') {
-                message += '<br><small class="text-muted">EPUB - Hỗ trợ thay đổi kích thước chữ</small>';
+                message += '<br><small class="text-success"><i class="fas fa-check"></i> EPUB - Định dạng tốt nhất cho đọc sách điện tử</small>';
             } else if (fileExtension === 'txt') {
-                message += '<br><small class="text-muted">TXT - Văn bản thuần, tối ưu hiệu suất</small>';
+                message += '<br><small class="text-success"><i class="fas fa-check"></i> TXT - Hiệu suất cao, tương thích tốt</small>';
             }
         }
         

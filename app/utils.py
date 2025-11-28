@@ -75,11 +75,31 @@ class BookContentReader:
         try:
             with open(file_path, 'rb') as file:
                 pdf_reader = PyPDF2.PdfReader(file)
-                for page_num in range(len(pdf_reader.pages)):
+                total_pages = len(pdf_reader.pages)
+                
+                # Thêm cảnh báo về chất lượng đọc PDF
+                content += "=" * 80 + "\n"
+                content += "LƯU Ý: Nội dung PDF được trích xuất tự động có thể không chính xác 100%.\n"
+                content += "Nếu văn bản hiển thị lỗi, vui lòng sử dụng file EPUB hoặc TXT.\n"
+                content += f"Tổng số trang: {total_pages}\n"
+                content += "=" * 80 + "\n\n"
+                
+                for page_num in range(total_pages):
                     page = pdf_reader.pages[page_num]
-                    content += page.extract_text() + "\n\n"
+                    page_text = page.extract_text()
+                    
+                    if page_text.strip():  # Chỉ thêm nếu có nội dung
+                        content += f"--- Trang {page_num + 1} ---\n"
+                        content += page_text + "\n\n"
+                    else:
+                        content += f"--- Trang {page_num + 1} (Không thể trích xuất text - có thể là ảnh) ---\n\n"
+                        
         except Exception as e:
             raise Exception(f"Lỗi đọc file PDF: {str(e)}")
+        
+        if not content.strip():
+            return "Không thể trích xuất nội dung từ file PDF này. File có thể chứa toàn bộ hình ảnh hoặc được bảo vệ."
+            
         return content
     
     @staticmethod

@@ -1,0 +1,6 @@
+Flask==3.0.0
+Werkzeug==3.0.1
+PyPDF2==3.0.1
+EbookLib==0.18
+html2text==2020.1.16
+python-dotenv==1.0.0

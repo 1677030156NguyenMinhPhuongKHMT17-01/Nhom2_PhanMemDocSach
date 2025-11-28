@@ -40,23 +40,21 @@ def create_app(config_name='default'):
     # Đăng ký Blueprint
     app.register_blueprint(main_bp)
     
-    # Cấu hình logging cho production
-    if not app.debug and not app.testing:
-        import logging
-        from logging.handlers import RotatingFileHandler
-        import os
-        
-        if not os.path.exists('logs'):
-            os.mkdir('logs')
-        
-        file_handler = RotatingFileHandler('logs/ebook_reader.log', maxBytes=10240000, backupCount=10)
-        file_handler.setFormatter(logging.Formatter(
-            '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
-        ))
-        file_handler.setLevel(logging.INFO)
-        app.logger.addHandler(file_handler)
-        
-        app.logger.setLevel(logging.INFO)
-        app.logger.info('EBook Reader application startup')
+    # Cấu hình logging
+    import logging
+    from logging.handlers import RotatingFileHandler
+    import os
+    
+    if not os.path.exists('logs'):
+        os.mkdir('logs')
+    
+    # File handler cho tất cả môi trường
+    file_handler = RotatingFileHandler('logs/ebook_reader.log', maxBytes=10240000, backupCount=5)
+    file_handler.setFormatter(logging.Formatter(
+        '%(asctime)s [%(levelname)s] %(message)s'
+    ))
+    file_handler.setLevel(logging.INFO if app.debug else logging.WARNING)
+    app.logger.addHandler(file_handler)
+    app.logger.setLevel(logging.INFO if app.debug else logging.WARNING)
     
     return app
